@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CENDAT Pulse — Inteligencia de Precios</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Barlow+Condensed:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue: #2563EB;
+    --blue-dark: #1D4ED8;
+    --blue-xdark: #1E3A8A;
+    --blue-light: #EFF6FF;
+    --blue-mid: #BFDBFE;
+    --dark: #0A0F1E;
+    --dark2: #111827;
+    --dark3: #1F2937;
+    --dark4: #374151;
+    --gray: #6B7280;
+    --gray-light: #F3F4F6;
+    --gray-mid: #E5E7EB;
+    --white: #FFFFFF;
+    --text: #111827;
+    --text2: #374151;
+    --text3: #6B7280;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --font: 'Barlow', sans-serif;
+    --font-cond: 'Barlow Condensed', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font); background: var(--white); color: var(--text); line-height: 1.6; overflow-x: hidden; }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(255,255,255,0.95); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--gray-mid);
+    padding: 0 2rem; height: 64px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .nav-logo-text { font-family: var(--font-cond); font-weight: 700; font-size: 1.25rem; color: var(--dark); letter-spacing: 0.04em; }
+  .nav-logo-pulse { font-family: var(--font-cond); font-weight: 800; font-size: 1.25rem; color: var(--blue); letter-spacing: 0.04em; }
+  .nav-links { display: flex; align-items: center; gap: 2rem; }
+  .nav-links a { font-size: 0.9rem; font-weight: 500; color: var(--text2); text-decoration: none; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--blue); }
+  .nav-cta {
+    background: var(--blue); color: var(--white) !important;
+    padding: 0.5rem 1.25rem; border-radius: 6px; font-weight: 600 !important;
+    transition: background 0.2s !important;
+  }
+  .nav-cta:hover { background: var(--blue-dark) !important; color: var(--white) !important; }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    background: var(--dark);
+    display: grid; grid-template-columns: 1fr 1fr;
+    align-items: center;
+    padding: 100px 6vw 80px;
+    gap: 4rem;
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; top: -200px; left: -200px;
+    width: 700px; height: 700px;
+    background: radial-gradient(circle, rgba(37,99,235,0.18) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero::after {
+    content: '';
+    position: absolute; bottom: -100px; right: 10%;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(37,99,235,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-left { position: relative; z-index: 1; }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(37,99,235,0.15); border: 1px solid rgba(37,99,235,0.35);
+    color: #93C5FD; padding: 0.35rem 0.9rem; border-radius: 100px;
+    font-size: 0.78rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+  .hero-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--blue); animation: pulse-dot 2s ease-in-out infinite; }
+  @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.3)} }
+  .hero h1 {
+    font-family: var(--font-cond); font-size: clamp(2.8rem, 5vw, 4.2rem); font-weight: 800;
+    line-height: 1.05; color: var(--white); margin-bottom: 1.5rem; letter-spacing: -0.01em;
+  }
+  .hero h1 em { color: var(--blue); font-style: normal; }
+  .hero-sub {
+    font-size: 1.1rem; color: #9CA3AF; line-height: 1.7; margin-bottom: 2.5rem;
+    max-width: 480px;
+  }
+  .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--blue); color: var(--white); text-decoration: none;
+    padding: 0.875rem 1.75rem; border-radius: var(--radius-sm);
+    font-weight: 700; font-size: 0.95rem; transition: all 0.2s;
+    font-family: var(--font);
+  }
+  .btn-primary:hover { background: var(--blue-dark); transform: translateY(-1px); }
+  .btn-ghost {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: transparent; color: var(--white); text-decoration: none;
+    padding: 0.875rem 1.75rem; border-radius: var(--radius-sm);
+    border: 1px solid rgba(255,255,255,0.2); font-weight: 600; font-size: 0.95rem;
+    transition: all 0.2s; font-family: var(--font);
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.4); }
+  .hero-right { position: relative; z-index: 1; }
+  .hero-mockup {
+    background: #111827; border: 1px solid rgba(255,255,255,0.08);
+    border-radius: var(--radius); overflow: hidden;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+  }
+  .mockup-bar {
+    background: #1F2937; border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding: 10px 16px; display: flex; align-items: center; gap: 6px;
+  }
+  .mockup-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .mockup-title {
+    font-family: var(--font-cond); font-size: 0.7rem; color: #6B7280;
+    letter-spacing: 0.08em; text-transform: uppercase; margin-left: 8px; font-weight: 600;
+  }
+  .mockup-body { padding: 1.25rem; }
+  .mockup-metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .m-metric {
+    background: #1F2937; border-radius: 8px; padding: 10px 12px;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  .m-metric-label { font-size: 0.65rem; color: #6B7280; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 4px; }
+  .m-metric-val { font-family: var(--font-cond); font-size: 1.3rem; font-weight: 700; color: var(--white); }
+  .m-metric-val.up { color: #34D399; }
+  .m-metric-val.down { color: #F87171; }
+  .m-metric-val.blue { color: #60A5FA; }
+  .mockup-chart { background: #1F2937; border-radius: 8px; padding: 14px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); }
+  .chart-label { font-size: 0.65rem; color: #6B7280; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 12px; font-weight: 600; }
+  .chart-bars { display: flex; align-items: flex-end; gap: 4px; height: 80px; }
+  .bar { flex: 1; border-radius: 3px 3px 0 0; transition: all 0.3s; }
+  .mockup-table { background: #1F2937; border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
+  .mt-header { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 8px; padding: 8px 12px; background: #111827; }
+  .mt-header span { font-size: 0.6rem; color: #6B7280; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+  .mt-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 8px; padding: 7px 12px; border-top: 1px solid rgba(255,255,255,0.04); align-items: center; }
+  .mt-row span { font-size: 0.72rem; color: #D1D5DB; }
+  .mt-row .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.6rem; font-weight: 700; }
+  .badge-up { background: rgba(52,211,153,0.15); color: #34D399; }
+  .badge-down { background: rgba(248,113,113,0.15); color: #F87171; }
+  .badge-flat { background: rgba(156,163,175,0.15); color: #9CA3AF; }
+  .hero-stats { display: flex; gap: 2rem; margin-top: 2.5rem; }
+  .h-stat { }
+  .h-stat-val { font-family: var(--font-cond); font-size: 2rem; font-weight: 800; color: var(--white); line-height: 1; }
+  .h-stat-val span { color: var(--blue); }
+  .h-stat-label { font-size: 0.78rem; color: #6B7280; margin-top: 2px; }
+
+  /* ── SECTION BASE ── */
+  section { padding: 6rem 6vw; }
+  .section-label {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--font-cond); font-size: 0.78rem; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--blue);
+    margin-bottom: 1rem;
+  }
+  .section-label::before { content: ''; display: block; width: 24px; height: 2px; background: var(--blue); }
+  h2 { font-family: var(--font-cond); font-size: clamp(2rem, 4vw, 2.8rem); font-weight: 800; line-height: 1.1; color: var(--text); }
+  h2 em { color: var(--blue); font-style: normal; }
+  .section-sub { font-size: 1.05rem; color: var(--text3); max-width: 560px; margin-top: 1rem; line-height: 1.7; }
+
+  /* ── PAINS ── */
+  .pains { background: var(--gray-light); }
+  .pains-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; margin-top: 3rem; }
+  .pain-card {
+    background: var(--white); border-radius: var(--radius); padding: 1.75rem;
+    border: 1px solid var(--gray-mid); position: relative; overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+  .pain-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.08); }
+  .pain-icon {
+    width: 44px; height: 44px; border-radius: 10px;
+    background: var(--blue-light); display: flex; align-items: center; justify-content: center;
+    margin-bottom: 1rem;
+  }
+  .pain-icon svg { width: 22px; height: 22px; stroke: var(--blue); fill: none; stroke-width: 1.8; }
+  .pain-card h3 { font-family: var(--font-cond); font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text); }
+  .pain-card p { font-size: 0.9rem; color: var(--text3); line-height: 1.65; }
+  .pain-accent { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: var(--blue); }
+
+  /* ── HOW IT WORKS ── */
+  .how { background: var(--white); }
+  .how-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: center; margin-top: 3rem; }
+  .how-steps { display: flex; flex-direction: column; gap: 2rem; }
+  .how-step { display: flex; gap: 1.25rem; align-items: flex-start; }
+  .how-step-num {
+    flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%;
+    background: var(--blue); color: var(--white); display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-cond); font-size: 1rem; font-weight: 800;
+  }
+  .how-step-content h3 { font-family: var(--font-cond); font-size: 1.1rem; font-weight: 700; margin-bottom: 0.35rem; }
+  .how-step-content p { font-size: 0.9rem; color: var(--text3); line-height: 1.65; }
+  .how-visual {
+    background: var(--dark); border-radius: var(--radius); padding: 2rem;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .flow-step {
+    display: flex; align-items: center; gap: 12px; padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .flow-step:last-child { border-bottom: none; }
+  .flow-icon {
+    width: 36px; height: 36px; border-radius: 8px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .flow-icon svg { width: 18px; height: 18px; stroke-width: 1.8; }
+  .flow-text { }
+  .flow-title { font-family: var(--font-cond); font-size: 0.85rem; font-weight: 700; color: var(--white); }
+  .flow-desc { font-size: 0.75rem; color: #6B7280; margin-top: 1px; }
+  .flow-arrow { margin-left: auto; color: var(--blue); font-size: 1.2rem; }
+  .dim-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 3rem; }
+  .dim-chip {
+    background: var(--blue-light); color: var(--blue); border: 1px solid var(--blue-mid);
+    padding: 0.4rem 0.9rem; border-radius: 100px; font-size: 0.82rem; font-weight: 600;
+    font-family: var(--font-cond); letter-spacing: 0.02em;
+  }
+
+  /* ── DASHBOARDS ── */
+  .dashboards { background: var(--dark); }
+  .dashboards h2 { color: var(--white); }
+  .dashboards .section-label { color: #60A5FA; }
+  .dashboards .section-label::before { background: #60A5FA; }
+  .dashboards .section-sub { color: #9CA3AF; }
+  .dash-tabs { display: flex; gap: 4px; margin-top: 2.5rem; flex-wrap: wrap; }
+  .dash-tab {
+    padding: 0.5rem 1.1rem; border-radius: 6px; cursor: pointer;
+    font-size: 0.82rem; font-weight: 600; font-family: var(--font-cond); letter-spacing: 0.03em;
+    border: 1px solid rgba(255,255,255,0.1); color: #9CA3AF; background: transparent;
+    transition: all 0.2s; text-transform: uppercase;
+  }
+  .dash-tab.active { background: var(--blue); color: var(--white); border-color: var(--blue); }
+  .dash-tab:hover:not(.active) { border-color: rgba(255,255,255,0.25); color: var(--white); }
+  .dash-panels { margin-top: 1.5rem; }
+  .dash-panel { display: none; }
+  .dash-panel.active { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .dash-card {
+    background: #111827; border: 1px solid rgba(255,255,255,0.07);
+    border-radius: var(--radius); padding: 1.25rem; cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .dash-card:hover { border-color: rgba(37,99,235,0.4); }
+  .dash-card-title { font-family: var(--font-cond); font-size: 0.75rem; font-weight: 700; color: #6B7280; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1rem; }
+  .fake-chart-line { display: flex; align-items: flex-end; gap: 3px; height: 60px; margin-bottom: 12px; }
+  .fake-bar { flex: 1; border-radius: 2px 2px 0 0; }
+  .fake-label { font-family: var(--font-cond); font-size: 1.4rem; font-weight: 800; color: var(--white); }
+  .fake-sub { font-size: 0.72rem; color: #6B7280; margin-top: 2px; }
+  .fake-tag { display: inline-flex; gap: 4px; align-items: center; font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; margin-top: 6px; }
+  .tag-up { background: rgba(52,211,153,0.15); color: #34D399; }
+  .tag-dn { background: rgba(248,113,113,0.15); color: #F87171; }
+  .tag-bl { background: rgba(96,165,250,0.15); color: #60A5FA; }
+  .dash-wide { grid-column: 1 / -1; }
+  .price-table { width: 100%; border-collapse: collapse; }
+  .price-table th { font-size: 0.65rem; color: #6B7280; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; text-align: left; padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .price-table td { font-size: 0.78rem; color: #D1D5DB; padding: 7px 8px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .price-table tr:last-child td { border-bottom: none; }
+  .price-table td.up { color: #34D399; font-weight: 600; }
+  .price-table td.dn { color: #F87171; font-weight: 600; }
+
+  /* ── FEATURES ── */
+  .features { background: var(--white); }
+  .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 3rem; }
+  .feat-card {
+    border: 1px solid var(--gray-mid); border-radius: var(--radius); padding: 1.75rem;
+    transition: box-shadow 0.2s, border-color 0.2s;
+  }
+  .feat-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.07); border-color: var(--blue-mid); }
+  .feat-icon { width: 40px; height: 40px; border-radius: 9px; background: var(--blue-light); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; }
+  .feat-icon svg { width: 20px; height: 20px; stroke: var(--blue); fill: none; stroke-width: 1.8; }
+  .feat-card h3 { font-family: var(--font-cond); font-size: 1.05rem; font-weight: 700; margin-bottom: 0.4rem; }
+  .feat-card p { font-size: 0.88rem; color: var(--text3); line-height: 1.65; }
+
+  /* ── CTA ── */
+  .cta-section { background: var(--dark); padding: 6rem 6vw; }
+  .cta-inner {
+    max-width: 1000px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: start;
+  }
+  .cta-section h2 { color: var(--white); }
+  .cta-section .section-sub { color: #9CA3AF; }
+  .cta-form { background: #111827; border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius); padding: 2rem; }
+  .cta-form h3 { font-family: var(--font-cond); font-size: 1.1rem; font-weight: 700; color: var(--white); margin-bottom: 1.5rem; }
+  .form-group { margin-bottom: 1rem; }
+  .form-group label { display: block; font-size: 0.82rem; font-weight: 600; color: #9CA3AF; margin-bottom: 0.35rem; }
+  .form-group input, .form-group select {
+    width: 100%; padding: 0.65rem 0.9rem; border-radius: 8px;
+    background: #1F2937; border: 1px solid rgba(255,255,255,0.1);
+    color: var(--white); font-family: var(--font); font-size: 0.9rem;
+    outline: none; transition: border-color 0.2s;
+  }
+  .form-group input::placeholder { color: #6B7280; }
+  .form-group input:focus, .form-group select:focus { border-color: var(--blue); }
+  .form-group select option { background: #1F2937; }
+  .btn-submit {
+    width: 100%; padding: 0.875rem; background: var(--blue); color: var(--white);
+    border: none; border-radius: 8px; font-family: var(--font); font-size: 0.95rem;
+    font-weight: 700; cursor: pointer; transition: background 0.2s; margin-top: 0.5rem;
+  }
+  .btn-submit:hover { background: var(--blue-dark); }
+  .cta-divider { display: flex; align-items: center; gap: 12px; margin: 1rem 0; }
+  .cta-divider::before, .cta-divider::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.08); }
+  .cta-divider span { font-size: 0.75rem; color: #6B7280; }
+  .btn-whatsapp {
+    width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 0.875rem; background: #25D366; color: var(--white);
+    border: none; border-radius: 8px; font-family: var(--font); font-size: 0.95rem;
+    font-weight: 700; cursor: pointer; transition: background 0.2s; text-decoration: none;
+  }
+  .btn-whatsapp:hover { background: #1DA851; }
+  .btn-whatsapp svg { width: 20px; height: 20px; fill: var(--white); flex-shrink: 0; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: #060A14; padding: 3rem 6vw 2rem;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  .footer-inner { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 3rem; margin-bottom: 2.5rem; }
+  .footer-brand p { font-size: 0.85rem; color: #6B7280; line-height: 1.7; margin-top: 0.75rem; max-width: 280px; }
+  .footer-col h4 { font-family: var(--font-cond); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #4B5563; margin-bottom: 0.75rem; }
+  .footer-col a { display: block; font-size: 0.85rem; color: #6B7280; text-decoration: none; margin-bottom: 0.5rem; transition: color 0.2s; }
+  .footer-col a:hover { color: #9CA3AF; }
+  .footer-bottom { border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+  .footer-bottom p { font-size: 0.78rem; color: #4B5563; }
+  .footer-bottom a { font-size: 0.78rem; color: #4B5563; text-decoration: none; }
+  .footer-bottom a:hover { color: #6B7280; }
+
+  /* ── LOGO SVG ── */
+  .pulse-svg { display: inline-block; vertical-align: middle; }
+
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; padding: 100px 5vw 60px; }
+    .hero-right { display: none; }
+    .how-grid { grid-template-columns: 1fr; }
+    .cta-inner { grid-template-columns: 1fr; gap: 3rem; }
+    .footer-inner { grid-template-columns: 1fr; gap: 2rem; }
+    .dash-panel.active { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 600px) {
+    nav .nav-links { display: none; }
+    .pains-grid { grid-template-columns: 1fr; }
+  }
+
+  /* Animate on scroll */
+  [data-fade] { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  [data-fade].visible { opacity: 1; transform: none; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="https://www.cendat.pro/inicio" class="nav-logo">
+    <svg class="pulse-svg" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="32" height="32" rx="8" fill="#EFF6FF"/>
+      <polyline points="2,16 7,16 10,8 13,24 16,11 19,20 22,14 25,14 28,16 30,16" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="28" cy="16" r="2" fill="#2563EB" opacity="0.6"/>
+    </svg>
+    <span class="nav-logo-text">CENDAT</span>
+    <span class="nav-logo-pulse">pulse</span>
+  </a>
+  <div class="nav-links">
+    <a href="#como-funciona">Cómo funciona</a>
+    <a href="#dashboards">Dashboards</a>
+    <a href="#features">Funcionalidades</a>
+    <a href="#contacto" class="nav-cta">Solicitar demo</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="hero-badge">
+      <div class="hero-badge-dot"></div>
+      Inteligencia de Precios en Tiempo Real
+    </div>
+    <h1>Controla los precios.<br>Supera a <em>la competencia</em>.</h1>
+    <p class="hero-sub">CENDAT Pulse monitorea tus precios y los de la competencia con datos scanner de supermercados, alertas automáticas y análisis multidimensional en Power BI.</p>
+    <div class="hero-actions">
+      <a href="#contacto" class="btn-primary">
+        Solicitar demostración
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+      </a>
+      <a href="https://www.cendat.pro/inicio" target="_blank" class="btn-ghost">Ver plataforma</a>
+    </div>
+    <div class="hero-stats">
+      <div class="h-stat">
+        <div class="h-stat-val">360<span>°</span></div>
+        <div class="h-stat-label">Vista del mercado</div>
+      </div>
+      <div class="h-stat">
+        <div class="h-stat-val">5<span>+</span></div>
+        <div class="h-stat-label">Dimensiones de análisis</div>
+      </div>
+      <div class="h-stat">
+        <div class="h-stat-val">15<span>+</span></div>
+        <div class="h-stat-label">Vistas de dashboard</div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="hero-mockup">
+      <div class="mockup-bar">
+        <div class="mockup-dot" style="background:#F87171"></div>
+        <div class="mockup-dot" style="background:#FBBF24"></div>
+        <div class="mockup-dot" style="background:#34D399"></div>
+        <span class="mockup-title">CENDAT Pulse — Seguimiento de precios</span>
+      </div>
+      <div class="mockup-body">
+        <div class="mockup-metrics">
+          <div class="m-metric">
+            <div class="m-metric-label">Precio Prom.</div>
+            <div class="m-metric-val blue">₡ 956.2</div>
+          </div>
+          <div class="m-metric">
+            <div class="m-metric-label">Var. vs mes ant.</div>
+            <div class="m-metric-val up">+3.4%</div>
+          </div>
+          <div class="m-metric">
+            <div class="m-metric-label">Alertas activas</div>
+            <div class="m-metric-val down">7</div>
+          </div>
+        </div>
+        <div class="mockup-chart">
+          <div class="chart-label">Precio promedio por litro — últimas 8 semanas</div>
+          <div class="fake-chart-line">
+            <div class="bar" style="height:48%;background:rgba(37,99,235,0.4)"></div>
+            <div class="bar" style="height:55%;background:rgba(37,99,235,0.45)"></div>
+            <div class="bar" style="height:52%;background:rgba(37,99,235,0.45)"></div>
+            <div class="bar" style="height:60%;background:rgba(37,99,235,0.5)"></div>
+            <div class="bar" style="height:58%;background:rgba(37,99,235,0.5)"></div>
+            <div class="bar" style="height:70%;background:rgba(37,99,235,0.6)"></div>
+            <div class="bar" style="height:75%;background:rgba(37,99,235,0.7)"></div>
+            <div class="bar" style="height:88%;background:#2563EB"></div>
+          </div>
+        </div>
+        <div class="mockup-table">
+          <div class="mt-header">
+            <span>Producto</span><span>Precio</span><span>Var M-1</span><span>Alerta</span>
+          </div>
+          <div class="mt-row">
+            <span>BRISKA 3100 ml</span>
+            <span>₡ 1,553</span>
+            <span style="color:#34D399">+2.1%</span>
+            <span class="badge badge-flat">—</span>
+          </div>
+          <div class="mt-row">
+            <span>VIVA-COLA 2600 ml</span>
+            <span>₡ 1,243</span>
+            <span style="color:#F87171">-5.9%</span>
+            <span class="badge badge-down">↓ Baja</span>
+          </div>
+          <div class="mt-row">
+            <span>TROPICOLA 1300 ml</span>
+            <span>₡ 1,249</span>
+            <span style="color:#34D399">+0.3%</span>
+            <span class="badge badge-up">↑ Sube</span>
+          </div>
+          <div class="mt-row">
+            <span>BURBUJA 2600 ml</span>
+            <span>₡ 934</span>
+            <span style="color:#9CA3AF">0.0%</span>
+            <span class="badge badge-flat">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PAINS -->
+<section class="pains">
+  <div data-fade>
+    <div class="section-label">El problema</div>
+    <h2>Sin datos, decidir es<br><em>adivinar</em></h2>
+    <p class="section-sub">La falta de visibilidad en precios cuesta ventas, margen y posicionamiento. Estos son los dolores que CENDAT Pulse resuelve.</p>
+  </div>
+  <div class="pains-grid">
+    <div class="pain-card" data-fade>
+      <div class="pain-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </div>
+      <h3>No sé dónde estoy vs. la competencia</h3>
+      <p>Sin comparación sistemática de precios, es imposible saber si tu precio está ganando o perdiendo terreno en el punto de venta.</p>
+      <div class="pain-accent"></div>
+    </div>
+    <div class="pain-card" data-fade>
+      <div class="pain-icon">
+        <svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+      </div>
+      <h3>Detecto cambios de precio con semanas de retraso</h3>
+      <p>Cuando te enteras de que un competidor bajó el precio, ya perdiste ventas. La velocidad de respuesta es crítica en mercados dinámicos.</p>
+      <div class="pain-accent"></div>
+    </div>
+    <div class="pain-card" data-fade>
+      <div class="pain-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <h3>Mi arquitectura de precios no se cumple</h3>
+      <p>Las políticas de pricing se definen, pero sin monitoreo continuo es difícil verificar que se apliquen correctamente en cada cadena y tienda.</p>
+      <div class="pain-accent"></div>
+    </div>
+    <div class="pain-card" data-fade>
+      <div class="pain-icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+      </div>
+      <h3>Reportes manuales consumen demasiado tiempo</h3>
+      <p>Consolidar datos de múltiples cadenas en Excel toma días. Para cuando el reporte está listo, la realidad ya cambió.</p>
+      <div class="pain-accent"></div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="como-funciona">
+  <div class="how-grid">
+    <div data-fade>
+      <div class="section-label">Cómo funciona</div>
+      <h2>Del dato al <em>insight</em><br>en minutos</h2>
+      <p class="section-sub">Un proceso simple y robusto que convierte datos de mercado en decisiones comerciales.</p>
+      <div class="how-steps" style="margin-top:2.5rem">
+        <div class="how-step">
+          <div class="how-step-num">1</div>
+          <div class="how-step-content">
+            <h3>Ingesta de datos</h3>
+            <p>Conectamos tus datos scanner de supermercados, levantamientos ad-hoc o los datos de CENDAT en el campo.</p>
+          </div>
+        </div>
+        <div class="how-step">
+          <div class="how-step-num">2</div>
+          <div class="how-step-content">
+            <h3>Modelo de datos en Power BI</h3>
+            <p>Construimos un modelo estructurado y actualizado que integra todas tus fuentes en un solo lugar.</p>
+          </div>
+        </div>
+        <div class="how-step">
+          <div class="how-step-num">3</div>
+          <div class="how-step-content">
+            <h3>Dashboards interactivos</h3>
+            <p>Visualizaciones con múltiples filtros accesibles desde web o móvil, listas para el equipo comercial.</p>
+          </div>
+        </div>
+        <div class="how-step">
+          <div class="how-step-num">4</div>
+          <div class="how-step-content">
+            <h3>Alertas y acción</h3>
+            <p>El sistema detecta variaciones y envía alertas automáticas para que actúes antes que la competencia.</p>
+          </div>
+        </div>
+      </div>
+      <div class="dim-chips" style="margin-top:2rem">
+        <span class="dim-chip">Región / Zona</span>
+        <span class="dim-chip">Canal / Cadena</span>
+        <span class="dim-chip">Categoría</span>
+        <span class="dim-chip">Competidores</span>
+        <span class="dim-chip">Período</span>
+        <span class="dim-chip">Fabricante / Marca</span>
+      </div>
+    </div>
+    <div data-fade>
+      <div class="how-visual">
+        <div class="flow-step">
+          <div class="flow-icon" style="background:rgba(37,99,235,0.15)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="1.8" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          </div>
+          <div class="flow-text">
+            <div class="flow-title">Supermercados / Distribuidores</div>
+            <div class="flow-desc">Datos scanner y levantamientos de campo</div>
+          </div>
+          <div class="flow-arrow">→</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-icon" style="background:rgba(37,99,235,0.15)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          </div>
+          <div class="flow-text">
+            <div class="flow-title">Procesamiento CENDAT</div>
+            <div class="flow-desc">Limpieza, normalización y modelado</div>
+          </div>
+          <div class="flow-arrow">→</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-icon" style="background:rgba(37,99,235,0.15)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="1.8" stroke-linecap="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+          </div>
+          <div class="flow-text">
+            <div class="flow-title">Modelo Power BI</div>
+            <div class="flow-desc">Reportes interactivos con 15+ vistas</div>
+          </div>
+          <div class="flow-arrow">→</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-icon" style="background:rgba(52,211,153,0.1)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="1.8" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+          <div class="flow-text">
+            <div class="flow-title">Decisión comercial</div>
+            <div class="flow-desc">Insights accionables en tiempo real</div>
+          </div>
+          <div class="flow-arrow" style="color:#34D399">✓</div>
+        </div>
+        <div style="margin-top:1.5rem; padding-top:1.25rem; border-top:1px solid rgba(255,255,255,0.06)">
+          <div style="font-size:0.7rem;color:#6B7280;letter-spacing:.06em;text-transform:uppercase;font-weight:600;margin-bottom:0.75rem">Acceso disponible en</div>
+          <div style="display:flex;gap:10px">
+            <span style="background:#1F2937;border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:5px 12px;font-size:0.75rem;color:#9CA3AF;font-family:var(--font-cond);font-weight:600">🌐 Web</span>
+            <span style="background:#1F2937;border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:5px 12px;font-size:0.75rem;color:#9CA3AF;font-family:var(--font-cond);font-weight:600">📱 Móvil</span>
+            <span style="background:#1F2937;border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:5px 12px;font-size:0.75rem;color:#9CA3AF;font-family:var(--font-cond);font-weight:600">📊 Power BI</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DASHBOARDS -->
+<section class="dashboards" id="dashboards">
+  <div data-fade>
+    <div class="section-label">La plataforma</div>
+    <h2 style="color:var(--white)">15+ vistas de <em style="color:#60A5FA">dashboard</em><br>para cada decisión</h2>
+    <p class="section-sub">Desde el detalle de precios por tienda hasta alertas de variación, todo en un ecosistema interactivo.</p>
+  </div>
+  <div class="dash-tabs" data-fade>
+    <button class="dash-tab active" onclick="switchTab('precios',this)">Precios</button>
+    <button class="dash-tab" onclick="switchTab('indices',this)">Índices</button>
+    <button class="dash-tab" onclick="switchTab('tendencias',this)">Tendencias</button>
+    <button class="dash-tab" onclick="switchTab('alertas',this)">Alertas</button>
+    <button class="dash-tab" onclick="switchTab('herramientas',this)">Herramientas</button>
+  </div>
+  <div class="dash-panels">
+    <!-- PRECIOS -->
+    <div class="dash-panel active" id="tab-precios">
+      <div class="dash-card">
+        <div class="dash-card-title">Precios por marca</div>
+        <div class="fake-chart-line">
+          <div class="fake-bar" style="height:70%;background:#1D4ED8;flex:2"></div>
+          <div class="fake-bar" style="height:55%;background:#2563EB;flex:2"></div>
+          <div class="fake-bar" style="height:45%;background:#3B82F6;flex:2"></div>
+          <div class="fake-bar" style="height:38%;background:#60A5FA;flex:2"></div>
+        </div>
+        <div class="fake-label">₡ 802.8</div>
+        <div class="fake-sub">Precio promedio por litro — BRISKA</div>
+        <div class="fake-tag tag-up">↑ +2.3%</div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-card-title">Precios por tienda</div>
+        <div class="fake-chart-line" style="gap:2px">
+          <div class="fake-bar" style="height:60%;background:#1E3A8A"></div>
+          <div class="fake-bar" style="height:65%;background:#1D4ED8"></div>
+          <div class="fake-bar" style="height:70%;background:#2563EB"></div>
+          <div class="fake-bar" style="height:75%;background:#3B82F6"></div>
+          <div class="fake-bar" style="height:72%;background:#60A5FA"></div>
+          <div class="fake-bar" style="height:80%;background:#93C5FD"></div>
+          <div class="fake-bar" style="height:68%;background:#BFDBFE"></div>
+        </div>
+        <div class="fake-label">₡ 841.1</div>
+        <div class="fake-sub">Precio unitario — PERIMERCADO</div>
+        <div class="fake-tag tag-bl">Mín: ₡ 826 · Máx: ₡ 890</div>
+      </div>
+      <div class="dash-card dash-wide">
+        <div class="dash-card-title">Detalle min / prom / mediana / máx por cadena y tienda</div>
+        <table class="price-table">
+          <tr><th>Cadena / Tienda</th><th>Mínimo</th><th>Promedio</th><th>Mediana</th><th>Máximo</th><th>Var M-1</th></tr>
+          <tr><td>PERIMERCADO DEL SUR</td><td>826.4</td><td>968.2</td><td>952.3</td><td>1,405</td><td class="up">+1.8%</td></tr>
+          <tr><td>PERIMERCADO GRECIA</td><td>847.4</td><td>935.6</td><td>921.0</td><td>1,405</td><td class="dn">-0.5%</td></tr>
+          <tr><td>PERIMERCADO MORAVIA</td><td>852.6</td><td>960.7</td><td>944.1</td><td>1,405</td><td class="up">+3.1%</td></tr>
+          <tr><td>SUPER COMPRO 27 ABRIL</td><td>860.0</td><td>952.8</td><td>938.0</td><td>1,375</td><td class="dn">-1.2%</td></tr>
+        </table>
+      </div>
+    </div>
+    <!-- INDICES -->
+    <div class="dash-panel" id="tab-indices">
+      <div class="dash-card">
+        <div class="dash-card-title">Índice de precios por producto (IPP)</div>
+        <div class="fake-chart-line" style="align-items:center;gap:12px;height:70px">
+          <div style="text-align:center;flex:1"><div style="font-family:var(--font-cond);font-size:1.1rem;font-weight:800;color:#60A5FA">1.71</div><div style="font-size:0.65rem;color:#6B7280">VIVA-COLA 1500</div></div>
+          <div style="text-align:center;flex:1"><div style="font-family:var(--font-cond);font-size:1.1rem;font-weight:800;color:#60A5FA">1.71</div><div style="font-size:0.65rem;color:#6B7280">TROPICOLA 1500</div></div>
+          <div style="text-align:center;flex:1"><div style="font-family:var(--font-cond);font-size:1.1rem;font-weight:800;color:var(--white)">1.00</div><div style="font-size:0.65rem;color:#6B7280">BRISKA 2100 ✦</div></div>
+          <div style="text-align:center;flex:1"><div style="font-family:var(--font-cond);font-size:1.1rem;font-weight:800;color:#34D399">0.89</div><div style="font-size:0.65rem;color:#6B7280">VIVA-COLA 2500</div></div>
+          <div style="text-align:center;flex:1"><div style="font-family:var(--font-cond);font-size:1.1rem;font-weight:800;color:#34D399">0.84</div><div style="font-size:0.65rem;color:#6B7280">VIVA-COLA 2000</div></div>
+        </div>
+        <div class="fake-label">Escalera de precios</div>
+        <div class="fake-sub">Base: BRISKA 2100 ml · Precio prom. por litro</div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-card-title">Índice de precios por marca</div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="font-size:0.72rem;color:#9CA3AF;width:70px;text-align:right">BRISKA</div>
+            <div style="flex:1;background:#1F2937;border-radius:4px;height:22px;position:relative;overflow:hidden">
+              <div style="position:absolute;left:0;top:0;bottom:0;width:72%;background:#2563EB;border-radius:4px;display:flex;align-items:center;padding:0 8px"><span style="font-size:0.7rem;font-weight:700;color:var(--white)">1.00</span></div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="font-size:0.72rem;color:#9CA3AF;width:70px;text-align:right">TROPICOLA</div>
+            <div style="flex:1;background:#1F2937;border-radius:4px;height:22px;position:relative;overflow:hidden">
+              <div style="position:absolute;left:0;top:0;bottom:0;width:54%;background:#1D4ED8;border-radius:4px;display:flex;align-items:center;padding:0 8px"><span style="font-size:0.7rem;font-weight:700;color:var(--white)">0.93</span></div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="font-size:0.72rem;color:#9CA3AF;width:70px;text-align:right">VIVA-COLA</div>
+            <div style="flex:1;background:#1F2937;border-radius:4px;height:22px;position:relative;overflow:hidden">
+              <div style="position:absolute;left:0;top:0;bottom:0;width:41%;background:#3B82F6;border-radius:4px;display:flex;align-items:center;padding:0 8px"><span style="font-size:0.7rem;font-weight:700;color:var(--white)">0.77</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="fake-sub" style="margin-top:10px">Índice precio/litro relativo a marca base</div>
+      </div>
+    </div>
+    <!-- TENDENCIAS -->
+    <div class="dash-panel" id="tab-tendencias">
+      <div class="dash-card dash-wide">
+        <div class="dash-card-title">Precio promedio por litro — evolución mensual</div>
+        <div style="display:flex;align-items:flex-end;gap:6px;height:90px;margin-bottom:8px">
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:100%;background:#1E3A8A;border-radius:3px 3px 0 0;height:50px"></div><div style="font-size:0.58rem;color:#6B7280">E</div></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:100%;background:#1D4ED8;border-radius:3px 3px 0 0;height:54px"></div><div style="font-size:0.58rem;color:#6B7280">F</div></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:100%;background:#2563EB;border-radius:3px 3px 0 0;height:52px"></div><div style="font-size:0.58rem;color:#6B7280">M</div></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:100%;background:#1E3A8A;border-radius:3px 3px 0 0;height:45px"></div><div style="font-size:0.58rem;color:#6B7280">A</div></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:100%;background:#1D4ED8;border-radius:3px 3px 0 0;height:58px"></div><div style="font-size:0.58rem;color:#6B7280">M</div></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:100%;background:#2563EB;border-radius:3px 3px 0 0;height:63px"></div><div style="font-size:0.58rem;color:#6B7280">J</div></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:100%;background:#3B82F6;border-radius:3px 3px 0 0;height:68px"></div><div style="font-size:0.58rem;color:#6B7280">J</div></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:100%;background:#60A5FA;border-radius:3px 3px 0 0;height:72px"></div><div style="font-size:0.58rem;color:#6B7280">A</div></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:100%;background:#93C5FD;border-radius:3px 3px 0 0;height:78px"></div><div style="font-size:0.58rem;color:#6B7280">S</div></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:100%;background:#BFDBFE;border-radius:3px 3px 0 0;height:82px"></div><div style="font-size:0.58rem;color:#6B7280">O</div></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+          <div><div class="fake-label">₡ 562</div><div class="fake-sub">Máximo registrado (oct)</div></div>
+          <div class="fake-tag tag-up">↑ +13.7% YTD</div>
+        </div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-card-title">Variación vs. mismo mes año anterior</div>
+        <div style="padding:8px 0;display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><span style="font-size:0.72rem;color:#D1D5DB">BRISKA 2100 ml</span><span style="font-size:0.72rem;font-weight:700;color:#34D399">+8.9%</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><span style="font-size:0.72rem;color:#D1D5DB">BRISKA 700 ml</span><span style="font-size:0.72rem;font-weight:700;color:#34D399">+8.9%</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><span style="font-size:0.72rem;color:#D1D5DB">VIVA-COLA 1700</span><span style="font-size:0.72rem;font-weight:700;color:#F87171">-7.6%</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0"><span style="font-size:0.72rem;color:#D1D5DB">TROPICOLA 2600</span><span style="font-size:0.72rem;font-weight:700;color:#34D399">+5.9%</span></div>
+        </div>
+      </div>
+    </div>
+    <!-- ALERTAS -->
+    <div class="dash-panel" id="tab-alertas">
+      <div class="dash-card">
+        <div class="dash-card-title">Alertas por variación en precios</div>
+        <div style="padding:4px 0;display:flex;flex-direction:column;gap:6px">
+          <div style="background:#1F2937;border-radius:8px;padding:10px 12px;border-left:3px solid #F87171">
+            <div style="display:flex;justify-content:space-between"><span style="font-size:0.72rem;font-weight:700;color:var(--white)">VIVA-COLA 1300 ml</span><span class="badge badge-down" style="font-size:0.65rem;padding:2px 8px">-5.4%</span></div>
+            <div style="font-size:0.65rem;color:#6B7280;margin-top:3px">PERIMERCADO · PPU actual: ₡ 1,248.9</div>
+          </div>
+          <div style="background:#1F2937;border-radius:8px;padding:10px 12px;border-left:3px solid #34D399">
+            <div style="display:flex;justify-content:space-between"><span style="font-size:0.72rem;font-weight:700;color:var(--white)">ZUMA-COLA 2100 ml</span><span class="badge badge-up" style="font-size:0.65rem;padding:2px 8px">+4.4%</span></div>
+            <div style="font-size:0.65rem;color:#6B7280;margin-top:3px">SUPER COMPRO · PPU actual: ₡ 1,795.5</div>
+          </div>
+          <div style="background:#1F2937;border-radius:8px;padding:10px 12px;border-left:3px solid #FBBF24">
+            <div style="display:flex;justify-content:space-between"><span style="font-size:0.72rem;font-weight:700;color:var(--white)">TROPICOLA 1300 ml</span><span class="badge" style="background:rgba(251,191,36,0.15);color:#FBBF24;font-size:0.65rem;padding:2px 8px">-0.62%</span></div>
+            <div style="font-size:0.65rem;color:#6B7280;margin-top:3px">GESSA · PPU actual: ₡ 1,248.9</div>
+          </div>
+        </div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-card-title">Alertas por variación en tiendas</div>
+        <table class="price-table" style="font-size:0.68rem">
+          <tr><th>Producto</th><th>Baja</th><th>Igual</th><th>Sube</th></tr>
+          <tr><td>BRISKA 3100 ml</td><td class="dn">7</td><td>6</td><td>—</td></tr>
+          <tr><td>BURBUJA 3100 ml</td><td>—</td><td>12</td><td>—</td></tr>
+          <tr><td>VIVA-COLA 2600 ml</td><td class="dn">12</td><td>1</td><td>—</td></tr>
+          <tr><td>VIVA-COLA 3100 ml</td><td class="dn">2</td><td>—</td><td class="up">11</td></tr>
+        </table>
+        <div class="fake-sub" style="margin-top:8px">Competidores · Formato PERIMERCADO · Familia Grande</div>
+      </div>
+    </div>
+    <!-- HERRAMIENTAS -->
+    <div class="dash-panel" id="tab-herramientas">
+      <div class="dash-card">
+        <div class="dash-card-title">Grilla de precios — Precio unitario, litro y SOM</div>
+        <table class="price-table" style="font-size:0.68rem">
+          <tr><th>Fabricante / Marca</th><th>1300ml P.U.</th><th>1300ml P.L.</th><th>SOM</th></tr>
+          <tr><td>BRISKA</td><td>1,241.0</td><td>954.6</td><td class="up">7.5%</td></tr>
+          <tr><td>VIVA-COLA</td><td>1,243.0</td><td>956.2</td><td class="up">1.5%</td></tr>
+          <tr><td>TROPICOLA</td><td>1,242.1</td><td>955.4</td><td class="up">19.7%</td></tr>
+          <tr><td>ZUMA-COLA</td><td>1,284.9</td><td>988.4</td><td>71.3%</td></tr>
+        </table>
+      </div>
+      <div class="dash-card">
+        <div class="dash-card-title">Apoyo OBPPC — Ocasión, Marca, Empaque, Precio, Canal</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+          <div style="background:#1F2937;border-radius:6px;padding:10px 12px">
+            <div style="font-size:0.65rem;color:#6B7280;margin-bottom:4px">RANGO 2000–2499 · Año 2019 · Enero</div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="font-size:0.72rem;color:var(--white)">BRISKA 2100 ml</span>
+              <span class="badge badge-up" style="font-size:0.65rem;padding:2px 8px">SOS 8.5%</span>
+            </div>
+            <div style="font-size:0.68rem;color:#9CA3AF;margin-top:2px">P.U. ₡ 1,106.9 · P.L. ₡ 527.1</div>
+          </div>
+          <div style="background:#1F2937;border-radius:6px;padding:10px 12px">
+            <div style="font-size:0.65rem;color:#6B7280;margin-bottom:4px">RANGO 2500–2999 · Año 2019 · Enero</div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="font-size:0.72rem;color:var(--white)">TROPICOLA 2600 ml</span>
+              <span class="badge badge-up" style="font-size:0.65rem;padding:2px 8px">SOS 23.2%</span>
+            </div>
+            <div style="font-size:0.68rem;color:#9CA3AF;margin-top:2px">P.U. ₡ 1,691.9 · P.L. ₡ 650.7</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div data-fade style="text-align:center;max-width:600px;margin:0 auto 3rem">
+    <div class="section-label" style="justify-content:center">Funcionalidades</div>
+    <h2>Todo lo que necesitas para<br><em>dominar los precios</em></h2>
+  </div>
+  <div class="features-grid">
+    <div class="feat-card" data-fade>
+      <div class="feat-icon">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
+      <h3>Mapa de tiendas</h3>
+      <p>Visualiza precios unitarios y por litro georreferenciados por tienda. Detecta disparidades geográficas de un vistazo.</p>
+    </div>
+    <div class="feat-card" data-fade>
+      <div class="feat-icon">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </div>
+      <h3>Alertas automáticas</h3>
+      <p>El sistema detecta variaciones relevantes por producto y tienda, y genera alertas inmediatas para que actúes antes que la competencia.</p>
+    </div>
+    <div class="feat-card" data-fade>
+      <div class="feat-icon">
+        <svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+      </div>
+      <h3>Índices de precios (IPP)</h3>
+      <p>Compara marcas y productos con un índice relativo. Visualiza escaleras de precios, cajas de distribución y evolución temporal.</p>
+    </div>
+    <div class="feat-card" data-fade>
+      <div class="feat-icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+      </div>
+      <h3>Tendencias y variaciones</h3>
+      <p>Analiza variaciones vs. mes anterior, mismo mes del año anterior y YTD. Identifica estacionalidades y patrones de ajuste.</p>
+    </div>
+    <div class="feat-card" data-fade>
+      <div class="feat-icon">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      </div>
+      <h3>Grilla de precios</h3>
+      <p>Vista matricial de precios unitarios, por litro y share por fabricante, tamaño y cadena. Ideal para revisiones comerciales.</p>
+    </div>
+    <div class="feat-card" data-fade>
+      <div class="feat-icon">
+        <svg viewBox="0 0 24 24"><circle cx="7" cy="18" r="4"/><circle cx="17" cy="6" r="4"/><line x1="7" y1="14" x2="17" y2="10"/></svg>
+      </div>
+      <h3>Apoyo OBPPC</h3>
+      <p>Analiza el portafolio por Ocasión, Marca, Empaque, Precio y Canal. Apoya la definición y seguimiento de tu estrategia comercial.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="contacto">
+  <div class="cta-inner">
+    <div data-fade>
+      <div class="section-label" style="color:#60A5FA"><span style="background:#60A5FA"></span>Comienza ahora</div>
+      <h2 style="color:var(--white)">¿Listo para tomar el control de <em style="color:#60A5FA">tus precios</em>?</h2>
+      <p class="section-sub" style="margin-top:1rem">Agenda una demostración personalizada y ve cómo CENDAT Pulse transforma datos de mercado en ventaja competitiva para tu empresa.</p>
+      <div style="margin-top:2.5rem;display:flex;flex-direction:column;gap:1rem">
+        <div style="display:flex;gap:12px;align-items:flex-start">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--blue);flex-shrink:0;margin-top:6px"></div>
+          <p style="font-size:0.9rem;color:#9CA3AF">Demo personalizada con datos de tu industria</p>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--blue);flex-shrink:0;margin-top:6px"></div>
+          <p style="font-size:0.9rem;color:#9CA3AF">Sin compromiso — explora la plataforma funcional</p>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--blue);flex-shrink:0;margin-top:6px"></div>
+          <p style="font-size:0.9rem;color:#9CA3AF">Implementación rápida con tus datos actuales</p>
+        </div>
+      </div>
+    </div>
+    <div data-fade>
+            <button class="btn-submit" onclick="window.open('https://www.cendat.pro/contacto','_blank')">
+          Solicitar demo gratuita →
+        </button>
+        <div class="cta-divider"><span>o contáctanos directamente</span></div>
+        <a href="https://wa.me/50762261991" target="_blank" class="btn-whatsapp">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          WhatsApp +507 6226-1991
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <a href="https://www.cendat.pro/inicio" class="nav-logo" style="text-decoration:none">
+        <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+          <rect width="32" height="32" rx="8" fill="#1E3A8A"/>
+          <polyline points="2,16 7,16 10,8 13,24 16,11 19,20 22,14 25,14 28,16 30,16" fill="none" stroke="#60A5FA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span style="font-family:var(--font-cond);font-weight:700;font-size:1.1rem;color:#9CA3AF">CENDAT <span style="color:#60A5FA">pulse</span></span>
+      </a>
+      <p>Sistema de Inteligencia de Precios para decisiones comerciales. Datos precisos, decisiones más rápidas.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Producto</h4>
+      <a href="#como-funciona">Cómo funciona</a>
+      <a href="#dashboards">Dashboards</a>
+      <a href="#features">Funcionalidades</a>
+      <a href="https://www.cendat.pro/contacto" target="_blank">Solicitar demo</a>
+    </div>
+    <div class="footer-col">
+      <h4>CENDAT</h4>
+      <a href="https://www.cendat.pro/inicio" target="_blank">Inicio</a>
+      <a href="https://www.cendat.pro/contacto" target="_blank">Contacto</a>
+      <a href="https://wa.me/50762261991" target="_blank">WhatsApp</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2025 CENDAT. Todos los derechos reservados.</p>
+    <a href="https://www.cendat.pro/inicio" target="_blank">www.cendat.pro</a>
+  </div>
+</footer>
+
+<script>
+function switchTab(id, btn) {
+  document.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.dash-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + id).classList.add('active');
+}
+
+const obs = new IntersectionObserver(entries => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('visible'), i * 80);
+      obs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('[data-fade]').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>
